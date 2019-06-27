@@ -1,0 +1,114 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.it.dao.SetMealDao">
+
+    <!--新增数据-->
+    <insert id="add" parameterType="setmeal" keyProperty="id" useGeneratedKeys="true">
+        insert into t_setmeal (code,name,sex,age,helpCode,price,remark,attention,img)
+        		            values
+      		(#{code},#{name},#{sex},#{age},#{helpCode},#{price},#{remark},#{attention},#{img})
+    </insert>
+
+    <!--根据id保存中间表数据-->
+    <insert id="selestSetmealById" parameterType="int">
+        INSERT INTO t_setmeal_checkgroup(setmeal_id,checkgroup_id) VALUES (#{setmeal},#{checkgroupId})
+    </insert>
+
+    <!--分页查询-->
+    <select id="fingPage" parameterType="string" resultType="setmeal">
+        select * from t_setmeal
+        <if test="value != null and value.length > 0">
+            where code LIKE '%${value}%' or name LIKE '%${value}%' or helpCode LIKE '%${value}%'
+        </if>
+    </select>
+
+    <!--id查询-->
+    <select id="selectById" parameterType="int" resultType="setmeal">
+        SELECT * FROM t_setmeal WHERE id = #{id}
+    </select>
+
+    <!--ID查询 返回对象-->
+    <select id="selectSetmealByCheckGroupId" parameterType="int" resultType="int">
+        SELECT checkgroup_id FROM t_setmeal_checkgroup WHERE setmeal_id = #{id}
+    </select>
+
+
+    <!--根据id保存-->
+    <update id="edit" parameterType="setmeal">
+        UPDATE t_setmeal
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="code != null">
+                code = #{code},
+            </if>
+            <if test="helpCode != null">
+                helpCode = #{helpCode},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="attention != null">
+                attention = #{attention},
+            </if>
+            <if test="img != null">
+                img = #{img},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--删除中间表-->
+    <delete id="deleteByid" parameterType="int">
+        DELETE FROM t_setmeal_checkgroup WHERE setmeal_id = #{id}
+    </delete>
+
+    <!--删除-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_setmeal WHERE id = #{id}
+    </delete>
+
+    <!--查询所有-->
+    <select id="getSetMeal" resultType="SetMeal">
+        select * from t_setmeal
+    </select>
+
+
+    <!--封装套餐-->
+    <select id="findById" parameterType="int" resultMap="findByMap">
+        SELECT * FROM t_setmeal WHERE id = #{id}
+    </select>
+    <resultMap id="findByMap" type="SetMeal" >
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="price" property="price"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <result column="img" property="img"/>
+        <collection property="checkGroups" ofType="CheckGroup"
+                    column="id" select="com.it.dao.CheckGroupDao.findBySetMealId"/>
+    </resultMap>
+
+    <select id="getSetmealReport" resultType="map">
+        SELECT s.name,COUNT(o.id) value FROM t_order o, t_setmeal s WHERE o.setmeal_id = s.id GROUP BY s.name
+    </select>
+
+</mapper>

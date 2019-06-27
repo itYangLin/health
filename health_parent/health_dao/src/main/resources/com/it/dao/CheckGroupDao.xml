@@ -1,0 +1,101 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.it.dao.CheckGroupDao">
+
+    <!--新增检查项-->
+    <insert id="add" parameterType="CheckGroup" keyProperty="id" useGeneratedKeys="true">
+        insert into t_checkgroup(code,name,sex,helpCode,remark,attention)
+                                values
+        (#{code},#{name},#{sex},#{helpCode},#{remark},#{attention})
+    </insert>
+
+    <!--保存中间表数据-->
+    <insert id="insertCheckitemIdsByCheckGroupId" parameterType="int">
+        INSERT INTO t_checkgroup_checkitem(checkgroup_id,checkitem_id) VALUES( #{checkGroupId},#{checkitemId})
+    </insert>
+
+
+    <!--分页查询-->
+    <select id="selectByCondition" parameterType="string" resultType="CheckGroup">
+        select * from t_checkgroup
+        <if test="value != null and value.length > 0">
+            where code LIKE '%${value}%' or name LIKE '%${value}%' or helpCode LIKE '%${value}%'
+        </if>
+    </select>
+
+    <!--id查询-->
+    <select id="selectById" parameterType="int" resultType="CheckGroup">
+        SELECT * FROM t_checkgroup WHERE id = #{id}
+    </select>
+
+    <!--ID查询 返回对象-->
+    <select id="selectCheckGroupIdByCheckItemIds" parameterType="int" resultType="int">
+    SELECT checkitem_id FROM t_checkgroup_checkitem WHERE checkgroup_id = #{id}
+    </select>
+
+
+    <!--根据id保存-->
+    <update id="edit" parameterType="CheckGroup">
+      UPDATE t_checkgroup
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="code != null">
+                code = #{code},
+            </if>
+            <if test="helpCode != null">
+                helpCode = #{helpCode},
+            </if>
+            <if test="attention != null">
+                attention = #{attention},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+        </set>
+    <where>
+      id = #{id}
+    </where>
+    </update>
+
+
+    <!--删除中间表-->
+    <delete id="deleteByid" parameterType="int">
+    DELETE FROM t_checkgroup_checkitem WHERE checkgroup_id = #{id}
+    </delete>
+
+
+    <!--删除-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_checkgroup WHERE id = #{id}
+    </delete>
+
+    <!--查询所有-->
+    <select id="findAll" resultType="CheckGroup">
+        SELECT * FROM t_checkgroup
+    </select>
+
+    <!--查询套餐所包含的检查组-->
+    <select id="findBySetMealId" parameterType="int" resultMap="findByCheckGroupId">
+        SELECT c.* FROM t_checkgroup c, t_setmeal_checkgroup s WHERE s.checkgroup_id = c.id AND s.setmeal_id = #{id}
+    </select>
+    <resultMap id="findByCheckGroupId" type="CheckGroup">
+        <result column="id" property="id" />
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <collection property="checkItems" ofType="CheckItem"
+                    column="id" select="com.it.dao.CheckItemDao.findByCheckGroupId"/>
+    </resultMap>
+
+</mapper>
